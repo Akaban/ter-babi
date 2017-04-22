@@ -17,12 +17,18 @@
 
 # In[ ]:
 
-from sys import argv
+from sys import argv,exit
 import os
 
-challenge_id=argv[0]
+if (len(argv) <= 1):
+    print "Arg not found"
+    exit(1)
+
+challenge_id=argv[1]
 directory="./computed_results/"
 directory=os.path.abspath(directory)
+
+print "I'm seeing challenge = {}".format(challenge_id)
 
 
 # In[65]:
@@ -85,7 +91,7 @@ import fnmatch
 try:
     path = get_file('babi-tasks-v1-2.tar.gz', origin='http://www.thespermwhale.com/jaseweston/babi/tasks_1-20_v1-2.tar.gz')
 except:
-   #print("erreur pendant le telechargement")
+   print("erreur pendant le telechargement")
 
 def trunc(f):
     s = '{}'.format(f)
@@ -130,7 +136,7 @@ train = readAndParse(tar.extractfile(challenge.format('train')),withoutNoise=wit
 test = readAndParse(tar.extractfile(challenge.format('test')),withoutNoise=withoutNoise)
 data = train+test
 
-#print "Nombre d'exemples total: {}".format(len(data))
+print "Nombre d'exemples total: {}".format(len(data))
 
 #proportions=(0.1,0.1,0.1) 
 proportions=equalProp(len(data),1000) #on en veut 1000 pour chaque ensemble
@@ -143,8 +149,7 @@ word_idx = dict(((w,i+1) for i,w in enumerate(vocab)))
 story_max = max((len(x) for x,_,_ in train+test+validation))
 question_max = max((len(x) for _,x,_ in train+test+validation))
 
-#print "Training: {} samples , Test: {} samples , Validation: {} samples".format(len(train),len(test),len(validation))
-
+print "Training: {} samples , Test: {} samples , Validation: {} samples".format(len(train),len(test),len(validation))
 
 # # Vectorisation
 # 
@@ -214,7 +219,6 @@ X_val,Xq_val,Y_val = vectorize(validation,word_idx,story_max,question_max)
 # In[19]:
 
 import matplotlib.pyplot as plt
-get_ipython().magic('matplotlib inline')
 
 def plotLearningCurves_acc(history_model,save=''):
     plt.plot(history_model.history['acc'])
@@ -278,8 +282,8 @@ history = model.fit([X, Xq], Y, batch_size=batch_size, nb_epoch=epochs,validatio
 challenge_dir=os.path.join(directory,"challenge/{}".format(challenge_id))
 
 loss,acc = model.evaluate([X_test,Xq_test],Y_test, batch_size=batch_size)
-ps="\nPerte = {:.3f}".format(loss)
-ass= "Précision = {:.0f}%".format(acc*100)
+ps="{:.3f}\n".format(loss)
+ass= "{:.0f}".format(acc*100)
 
 if not os.path.exists(challenge_dir):
         os.makedirs(challenge_dir)
@@ -288,7 +292,7 @@ plotLearningCurves_acc(history,save=os.path.join(challenge_dir,"accuracy.png"))
 plotLearningCurves_loss(history,save=os.path.join(challenge_dir,"loss.png"))
 model.save(os.path.join(challenge_dir,"model.h5"))
 
-with open(os.path.join(challenge_dir,"info"),'w+') as file:
+with open(os.path.join(challenge_dir,"result.txt"),'w+') as file:
     file.write(ps)
     file.write(ass)
 
