@@ -1,0 +1,562 @@
+% Copyright 2004 by Till Tantau <tantau@users.sourceforge.net>.
+%
+% In principle, this file can be redistributed and/or modified under
+% the terms of the GNU Public License, version 2.
+%
+% However, this file is supposed to be a template to be modified
+% for your own needs. For this reason, if you use this file as a
+% template and not specifically distribute it as part of a another
+% package/program, I grant the extra permission to freely copy and
+% modify this file as you see fit and even to delete this copyright
+% notice. 
+
+\documentclass{beamer}
+\usepackage{etex}
+% Replace the \documentclass declaration above
+% with the following two lines to typeset your 
+% lecture notes as a handout:
+%\documentclass{article}
+%\usepackage{beamerarticle}
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{wasysym}
+\usepackage{booktabs}
+\newcommand*{\vpointer}{\vcenter{\hbox{\scalebox{2}{\Huge\pointer}}}}
+\usepackage{multicol}
+\usepackage{xcolor}
+\usepackage{color}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.14}
+\usepackage{amsthm,mathrsfs}
+\theoremstyle{definition}
+\newtheorem{exmp}{Exemple}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{fancyvrb}
+\usepackage{graphicx}
+\graphicspath{{Pictures/}}
+% There are many different themes available for Beamer. A comprehensive
+% list with examples is given here:
+% http://deic.uab.es/~iblanes/beamer_gallery/index_by_theme.html
+% You can uncomment the themes below if you would like to use a different
+% one:
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{boxes}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{default}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+\title{TER: Modèles neuronaux pour le traitement des langues}
+\subtitle{Raisonnement automatique question/réponse et notation automatique}
+\author{Thierry Loesch \and Bryce Tichit}
+\institute
+{
+	M1 Informatique\\
+	Université Paris-Sud
+}
+\date{Avril 2017}
+
+\begin{document}
+	
+	\begin{frame}
+		\titlepage
+		\centering\includegraphics[scale=0.15]{logo_saclay}
+	\end{frame}
+	
+	\begin{frame}{Sommaire}
+		\tableofcontents
+	\end{frame}
+
+% exemple slide proba: https://www.sharelatex.com/project/58f7c4d79e24349c0e938449
+
+\section{Introduction}
+% Section and subsections will appear in the presentation overview
+% and table of contents.
+
+\begin{frame}{Introduction}{}
+	
+Les \textbf{réseaux de neurones} sont un outil formidable lorsqu'il s'agit du \textit{traitement automatique de la langue}.\pause
+
+\vspace{0.5cm}
+
+Afin de répondre aux exigences actuelles en matière d'apprentissage sur texte, il est nécessaire de synthétiser les données et développer une réelle méthode de compréhension.\pause
+
+\vspace{0.5cm}
+
+Dans ce projet nous mettons en oeuvre une méthodologie et un modèle afin d'inférer dans un premier temps une réponse à une question portée sur un texte.\pause
+
+\vspace{0.5cm}
+
+Dans un deuxième temps nous essayerons de transposer la méthode précedente à un autre problème plutôt similaire: la \textit{notation automatique de réponses d'étudiants}. Le but sera là d'inférer une note en fonction des réponses.
+		
+\end{frame}
+
+
+\section{Projet Babi Tasks}
+
+\begin{frame}{Projet Babi Tasks}
+
+\textbf{Le projet Babi Tasks}: Consiste en un projet de 20 tâches avec pour objectif de raisonner sur des phrases écrites, modéliser un énoncé et inférer un mot
+
+\pause
+\vspace{0.5cm}
+
+
+Les tâches sont diverses, allant du raisonnement sur une question à partir de un, deux ou trois faits justificatifs jusqu'au raisonnement sur des faits temporels.
+    
+\end{frame}
+
+\subsection{Description des données}
+
+\begin{frame}{Description des données}
+
+Exemples de tâches et données associées:
+
+\center\includegraphics[scale=0.4]{tasks}
+    
+\end{frame}
+
+\begin{frame}{Description des données}
+
+\textbf{Vocabulaire maîtrisé}: Le vocabulaire est maîtrisé et de taille assez restreinte
+\pause  
+
+\vspace{0.5cm}
+
+Généré par un algorithme \textit{Torch}.\pause
+
+\center\includegraphics[scale=0.5]{stat-tasks}
+    
+\end{frame}
+
+\subsection{Méthodologie}
+
+\begin{frame}{Méthodologie}
+Pour parvenir à notre objectif nous utiliserons entre autres,
+
+\begin{itemize}
+\item Keras, une surcouche pour Theano et Tensorflow utilisé pour notre modèle
+\item Les embeddings
+\item Les réseaux de neurones récurrents
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Word Embeddings}
+
+Méthode d'apprentissage automatique issue du deep learning reposant sur l'apprentissage d'une représentation de mot.
+
+\vspace{0.2cm}
+
+Cette méthode à permis de révolutionner l'apprentissage automatique de la langue.
+
+\vspace{0.5cm}
+
+Permet de se faire une représentation d'une phrase sous forme de vecteur. Celui-ci est beaucoup plus petit que s'il fallait stocker la phrase entière $\Rightarrow$ permet de condenser les particularités d'un texte.
+
+\vspace{0.5cm}
+
+En conséquence, il en suit un effort d'apprentissage réduit.
+
+
+\end{frame}
+
+\begin{frame}{Réseaux récurrents}
+Pour \textit{raisonner} sur un texte nous avons un outil indispensable: les \textbf{réseaux récurrents}.
+
+\vspace{0.2cm}
+
+\begin{minipage}[c]{.46\linewidth}
+\includegraphics[scale=0.3]{resrec}
+\end{minipage}
+\begin{minipage}[c]{.46\linewidth}
+Pour chaque instant $t$:
+\begin{itemize}
+\item maintient une représentation interne de l'historique $h_t$
+\item Mise à jour du réseau à partir d'une observation $x_t$ et de l'état de l'historique précédent $h_{t-1}$
+\item La prédiction $y_t$ dépend de l'historique $h_t$
+\item L'entrée du réseau vient des embeddings
+\end{itemize}
+\end{minipage}
+
+\end{frame}
+
+\begin{frame}{Réseaux récurrents}
+
+Différents types de réseaux récurrents,
+
+\begin{itemize}
+\item \textbf{G}ated \textbf{R}ecurrent \textbf{U}nit
+\item \textbf{L}ong \textbf{S}hort \textbf{T}erm \textbf{Memory} Networks
+\item Memory Networks 
+\item \ldots
+
+\end{itemize}
+
+\vspace{0.5cm}
+
+Dans ce projet nous utiliserons les réseaux LSTM, toutefois il a été montré dans l'article\cite{1} que les Memory Networks étaient très clairement meilleurs pour ce projet. Ceux-ci permettent de voir plus clairement à travers le \textit{bruit} des données.
+\end{frame}
+
+\subsection{Modèles et résultats}
+
+\begin{frame}{Vectorisation}
+
+Nous commençons par coder nos données avec des vecteurs et en mettant le tout dans des matrices: c'est la \textbf{vectorisation}.
+
+\vspace{0.5cm}
+
+Exemple:
+
+\center\includegraphics[scale=0.5]{wordidx}
+
+\end{frame}
+
+\begin{frame}{Vectorisation}
+
+Nous commençons par coder nos données avec des vecteurs et en mettant le tout dans des matrices: c'est la \textbf{vectorisation}.
+
+\vspace{0.5cm}
+
+Exemple:
+
+\center\includegraphics[scale=0.5]{matrixidx}
+
+On applique la même opération sur l'ensemble de nos données.
+
+\end{frame}
+
+\begin{frame}{Keras}
+Passons au \textbf{modèle},
+
+\vspace{0.5cm}
+
+Il s'agit du système qui va modéliser notre énoncé, nous utilisons \textit{Keras} pour ce faire. Il s'agit d'une surcouche pour \textit{Theano} et \textit{Tensorflow} qui permet de créer facilement des réseaux de neurones à souhait.
+
+\vspace{0.5cm}
+
+De nombreux outils très puissants de \textbf{Machine Learning} sont implémentés dans la librairie \textit{Keras} par défaut.
+\end{frame}
+\begin{frame}{Keras}
+Exemple de réseau de neurones écrit en Keras:
+\begin{minipage}[c]{.46\linewidth}
+\includegraphics[scale=0.1]{nn}
+\end{minipage}
+\begin{minipage}[c]{.46\linewidth}
+\includegraphics[scale=0.5]{exkeras}
+\end{minipage}
+\vspace{1cm}
+
+Il est par la suite très simple d'entraîner notre réseau grâce à la fonction \textbf{Model.Fit}
+\end{frame}
+
+\begin{frame}{Modèle}
+La particularité du projet \textbf{Babi Tasks}: devoir traiter deux données à la fois.
+
+\begin{itemize}
+\item Les histoires
+\item Les questions portant sur les histoires
+\item Et bien évidemment la donnée $Y$: la réponse à la question
+\end{itemize}
+
+Comment faire pour implémenter cela en Keras sachant qu'il faudra traiter chaque donnée différemment?
+\pause
+
+\vspace{0.5cm}
+
+Grâce à la couche \textbf{Merge} de Keras !
+\end{frame}
+
+\begin{frame}{Modèle 1}
+Une première approche consistait en un modèle semblant plutôt naturel, diviser le modèle en deux (une partie histoire et une partie question) en appliquant des couches Embeddings et des couche LSTM. Il s'agira du modèle 1.
+
+\begin{center}
+\includegraphics[scale=0.35]{btaskmodel2}
+\end{center}
+
+\end{frame}
+
+\begin{frame}{Modèle 2}
+Nous utiliserons également un autre modèle légèrement différent, repris de l'article\cite{1}. Nous nommerons ce modèle par la suite: modèle 2.
+
+\begin{center}
+\includegraphics[scale=0.5]{btaskmodel1}
+\end{center}
+
+\end{frame}
+
+\begin{frame}{Modèle: Un problème de généralisation?}
+
+Rapidement nous voyons que le modèle 1 est bien moins performant que le modèle 2. Nous calculons les performances des deux modèles sur la première tâche avec la fonction \textbf{evaluate} de Keras sur deux ensembles de données de taille différente.
+
+\vspace{1.5cm}
+
+				\begin{tabular}{ccc}
+					
+					\toprule
+					Modèle & Précision (1000 samples) & Précision (5500 samples) \\ 
+					\midrule
+					Modèle 2 & 48\% & 66\%  \\ 
+					\\
+					Modèle 1 & 36\% & 37\% \\ 
+					\\
+					\bottomrule
+                \end{tabular}
+\end{frame}
+
+\begin{frame}{Modèle: Un problème de généralisation?}
+
+Nous observons par la suite grâce aux \textbf{courbes d'apprentissage} que le modèle 1 souffre d'un sur-apprentissage.
+
+\begin{center}
+\begin{minipage}[c]{.46\linewidth}
+\includegraphics[scale=0.3]{lstm-lc}
+\end{minipage}
+\begin{minipage}[c]{.46\linewidth}
+\includegraphics[scale=0.3]{model1-lc}
+\end{minipage}
+\end{center}
+
+La différence est marquante, on voit pour le modèle 1 que la perte sur l'ensemble de validation augmente \textbf{fortement} à mesure que la perte sur l'ensemble d'apprentissage diminue: caractéristique d'un sur-apprentissage.
+
+\end{frame}
+
+\begin{frame}{Résultats}
+
+Nous utilisons le modèle 2 pour nous résultats,
+
+\vspace{0.5cm}
+
+Quelques exemples de résultats,
+
+\begin{center}
+				\begin{tabular}{lcc}
+					
+					\toprule
+					Tache & Perte & Précision \\ 
+					\midrule
+                            1 Single Supporting Fact & 1.19  & 51\% \\
+                            2 Two Supporting Facts & 1.781 & 28\% \\
+                            3 Three Supporting Facts & 1.718 & 19\%\\
+                            4 Two Argument Relations & 1.458 & 35\% \\
+                            5 Three Argument Relations & 1.183 & 39\% \\
+                            6 Yes/No Questions & 0.697 & 48\% \\
+                            7 Counting & 0.720 & 68\% \\
+\end{tabular}
+\end{center}
+
+Ces résultats sont obtenus en prenant en compte le bruit des données, avec le même modèle on obtient des résultat bien meilleurs sans le bruit ($100$\% sur la première tâche)
+\end{frame}
+
+\section{Notation automatique}
+\subsection{Objectifs}
+
+\begin{frame}{Objectifs d'un second sujet}
+
+\begin{itemize}
+\item Tester et modifier notre précédent système dans un autre contexte
+\item Changer le type d'inférence
+\item Identifier les limites
+\end{itemize}
+
+\end{frame}
+
+\subsection{Description des données}
+
+\begin{frame}{Présentation du sujet}
+
+Automatiser la notation de réponses courtes à des questions courtes
+
+\end{frame}
+
+\begin{frame}{Présentation du sujet}
+
+Automatiser la notation de réponses courtes à des questions courtes
+
+\begin{itemize}
+\item Répondre au besoin de correcteurs dans le cadre d'un grand nombre de réponses
+\item Assister les étudiants en groupes réduits ou individuels
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Descriptions des données}
+
+\begin{itemize}
+\item 80 questions portant sur les sciences informatiques
+\item 31 élèves de niveaux différents
+\item 2273 réponses (car certaines questions peuvent être laissée sans réponse)
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Description des données}
+
+\center\includegraphics[scale=0.26]{tab_questions_reponses_notes}
+
+\end{frame}
+
+\subsection{Méthodologie}
+
+\begin{frame}{Nouvelles contraintes}
+
+Adapter notre modèle
+\begin{itemize}
+\item 3 données en entrée au lieu de 2
+\item Activation par fonction sigmoid
+\item Entraînement du modèle via fonction de coût \textit{Minimum Squared Error}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Modèle}
+
+\center\includegraphics[scale=0.3]{model2}
+
+\end{frame}
+
+\begin{frame}{Optimisation du vocabulaire}
+
+Idée pour améliorer l'apprentissage : Réduction du nombre de mots dans le vocabulaire
+\vspace{0.5cm}
+On regroupe les mots par synonymes, les mots appartenant à un même groupe de synonymes partagent un même indice
+
+\center\includegraphics[scale=0.3]{regroupement}
+
+\end{frame}
+
+\begin{frame}{Optimisation du vocabulaire}
+
+Plusieurs solutions envisagées :
+\begin{itemize}
+\item Word2Vec
+\item Natural Language Toolkit (nltk)
+\end{itemize}
+\vspace{0.5cm}
+
+Word2Vec n'étant pas le plus simple et adapté pour les synonymes, nous retiendrons nltk.
+    
+\end{frame}
+
+\begin{frame}{Optimisation du vocabulaire}
+ 
+ Comment fonctionne nltk :
+ 
+ \vspace{0.5cm}
+ On récupère tous les groupes de synonymes, les Synsets. Les mots d'un même synset partagent un sens commun.
+ 
+ Puis un récupère tous les lemmes de tous les synsets, avant de supprimer les doublons
+ 
+ \vspace{0.5cm}
+ Pour accéder aux synsets, nous avons utilisé le corpus Wordnet
+\end{frame}
+
+\subsection{Résultats}
+
+\begin{frame}{Résultats}
+
+Précision avant regroupement de 50\%
+\begin{center}
+\includegraphics[scale=0.3]{graphenote}
+\end{center}
+
+\vspace{0.5cm}
+Seulement 52\% environ après regroupement, en diminuant la taille du vocabulaire de 2200 mots à 1200.
+
+Pour comparaison, les résultats dans l'article étaient plus proches des 80\%
+  
+\end{frame}
+
+\section{Conclusion}
+
+\begin{frame}
+
+\centering \textbf{Conclusion}
+\end{frame}	
+
+\begin{frame}{bAbI Tasks}
+
+\begin{itemize}
+\item Implémentation en accord avec celle de l'article\cite{1}
+\item Résultats très corrects et similaires à ceux obtenus dans l'article\cite{1}
+\item Répond à l'objectif d'inférer un mot en modélisant un énoncé
+\item Différence étonnante entre les deux modèles présentés
+\item $\rightarrow$ Un système intéressant permettant d'imiter un raisonnement humain, vers un système général de raisonnement artificiel
+\item \ldots mais réduit à utiliser un vocabulaire borné dans ce cas
+\end{itemize}
+  
+\end{frame}
+
+\begin{frame}{Notation Automatique}
+
+Notre modèle n'est pas suffisamment adapté pour traiter ce sujet.
+\vspace{0.5cm}
+
+\begin{itemize}
+\item Vocabulaire toujours trop grand ?
+\item Optimiser avec d'autres méthodes ?
+\item Taille d'embedding trop faible ?
+\end{itemize}
+\end{frame}	
+
+\begin{frame}{Notation Automatique}
+
+Propositions :
+\begin{itemize}
+\item Travailler d'avantage sur la similarité entre les phrases avec Word2Vec (usage plus judicieux que les synonymes)
+\item Regrouper encore plus les mots avec du Stemming
+\item Utiliser nltk dans le cadre des antonymes, hyponymes, hyperonymes
+\end{itemize}
+\end{frame}	
+
+% All of the following is optional and typically not needed. 
+\appendix
+\section<presentation>*{\appendixname}
+\subsection<presentation>*{Références}
+
+\begin{frame}[allowframebreaks]
+  \frametitle<presentation>{Références}
+    
+  \begin{thebibliography}{10}
+    
+  \beamertemplatearticlebibitems
+
+	\bibitem[1]{1}
+	Jason Weston, Antoine Bordes, Sumit Chopra, Alexander M. Rush, Bart van Merriënboer, Armand Joulin, Tomas Mikolov\\
+	\newblock Towards AI-Complete Question Answering: A Set of Prerequisite Toy Tasks
+	
+	\bibitem[2]{2}
+	M. Mohler, R. Bunescu, R. Mihalcea\\
+	\newblock Learning to Grade Short Answer Questions using Semantic Similarity Measures and Dependency Graph Alignments
+ 	
+   
+  \end{thebibliography}
+\end{frame}
+
+\end{document}
+
+
